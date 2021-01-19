@@ -69,7 +69,7 @@ def imshow(img):
     
     
 def get_img_file(img_id, root_dir):
-    return Path(root_dir, img_id, '.jpg').as_posix()
+    return Path(root_dir, img_id).with_suffix('.jpg').as_posix()
 
 
 def get_bbox(obj, max_x, max_y, padding=6):
