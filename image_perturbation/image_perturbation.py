@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import skimage
 import re
+import torch
 from skimage import io
 from pathlib import Path
 from .utils import Config
