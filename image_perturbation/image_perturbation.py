@@ -4,9 +4,9 @@ import skimage
 import re
 from skimage import io
 from pathlib import Path
-from utils import Config
-from modeling_frcnn import GeneralizedRCNN
-from preprocess_image import Preprocess
+from .utils import Config
+from .modeling_frcnn import GeneralizedRCNN
+from .preprocess_image import Preprocess
 
 
 OBJ_ID_PATTERN = r'obj[\d+]_id'
