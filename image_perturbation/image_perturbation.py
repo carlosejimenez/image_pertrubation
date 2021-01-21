@@ -14,12 +14,13 @@ OBJ_ID_PATTERN = r'obj[\d+]_id'
 
 
 class ImageBuffer:
-    def __init__(self, scenes, dataset, num_detections, device='cuda', root_dir='./images/'):
+    def __init__(self, scenes, dataset, num_detections, sigma, device='cuda', root_dir='./images/'):
         self.image = None
         self.root_dir = root_dir
         self.a_id = None
         self.feats = None
         self.boxes = None
+        self.sigma = sigma
         self.assignment = None
         self.device = device
         frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
@@ -48,7 +49,7 @@ class ImageBuffer:
         img_id = self._get_img_id()
         scene = self.scenes[img_id]
         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
-        self.image = torch.Tensor(blur_img_objects(orig_image, scene, self.assignment, sigma=3))
+        self.image = torch.Tensor(blur_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
 
     def __getitem__(self, key):
         a_id = self._get_a_id(key)
