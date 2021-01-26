@@ -92,9 +92,9 @@ def blur_context(img, sigma, bboxes):
     objs_mask = np.zeros_like(img, dtype=bool)
     for bbox in bboxes:
         objs_mask |= mask(img, bbox)
-    objs_mask = objs_mask.astype('uint8')
-    objs_mask_blurred = cv2.GaussianBlur(objs_mask, (ksize, ksize), sigma)
-    return img_blurred * (1 - objs_mask_blurred) + objs_mask_blurred * img
+    objs_mask = objs_mask.astype('uint8') * 255
+    objs_mask_blurred = cv2.GaussianBlur(objs_mask, (ksize, ksize), sigma) / 255
+    return (img_blurred * (1 - objs_mask_blurred) + objs_mask_blurred * img).clip(0, 255).round().astype('uint8')
 
 
 def blur_img_objects(img, scene, assignment, sigma=3):
