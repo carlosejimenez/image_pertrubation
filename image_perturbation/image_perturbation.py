@@ -21,6 +21,8 @@ class ImageBuffer:
         self.feats = None
         self.boxes = None
         self.sigma = sigma
+        if self.sigma == 0:
+            print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
         self.assignment = None
         self.device = device
         frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
@@ -49,7 +51,10 @@ class ImageBuffer:
         img_id = self._get_img_id()
         scene = self.scenes[img_id]
         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
-        self.image = torch.Tensor(blur_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
+        if self.sigma > 0:
+            self.image = torch.Tensor(blur_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
+        else:
+            self.image = torch.Tensor(orig_image)
 
     def __getitem__(self, key):
         a_id = self._get_a_id(key)
