@@ -28,7 +28,7 @@ class ImageBuffer:
         frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
         frcnn_cfg.model.device = self.device
         self.num_detections = num_detections
-        frcnn_cfg.min_detections = self.num_detections
+        # frcnn_cfg.min_detections = self.num_detections
         frcnn_cfg.max_detections = self.num_detections
         self.frcnn = GeneralizedRCNN.from_pretrained("unc-nlp/frcnn-vg-finetuned", config=frcnn_cfg)
         self.image_preprocess = Preprocess(frcnn_cfg)
