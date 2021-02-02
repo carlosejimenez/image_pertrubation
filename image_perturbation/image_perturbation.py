@@ -120,7 +120,6 @@ def blur_context(img, sigma, bboxes):
 
 
 def avg_context(img, bboxes):
-    print('Hello, in avg!')
     img_avgd = np.ones_like(img) * AVERAGES
     objs_mask = np.zeros_like(img, dtype=bool)
     for bbox in bboxes:
