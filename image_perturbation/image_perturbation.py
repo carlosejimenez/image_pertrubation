@@ -10,17 +10,25 @@ from .modeling_frcnn import GeneralizedRCNN
 from .preprocess_image import Preprocess
 
 
+AVERAGES = np.array([106.12723969, 115.13348752, 119.6278144 ])
 OBJ_ID_PATTERN = r'obj[\d+]_id'
 
 
 class ImageBuffer:
-    def __init__(self, scenes, dataset, num_detections, sigma, device='cuda', root_dir='./images/'):
+    def __init__(self, scenes, dataset, num_detections, mode, sigma=None, device='cuda', root_dir='./images/'):
         self.image = None
         self.root_dir = root_dir
         self.a_id = None
         self.feats = None
         self.boxes = None
         self.sigma = sigma
+        self.mode = mode
+        if mode == 'blur':
+            self.mode_func = blur_img_objects
+            self.mode_args = {'sigma': self.sigma}
+        elif mode == 'avg':
+            self.mode_func = avg_img_objects
+            self.mode_kwargs = dict()
         if self.sigma == 0:
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
         self.assignment = None
@@ -46,6 +54,15 @@ class ImageBuffer:
 
     def _get_a_id(self, question_id):
         return '-'.join(question_id.split('-')[:3])
+
+    def _set_img(self):
+        img_id = self._get_img_id()
+        scene = self.scenes[img_id]
+        orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
+        if self.sigma > 0:
+            self.image = torch.Tensor(apply_img_objects(self.mode_func, orig_image, scene, self.assignment, **self.mode_kwargs))
+        else:
+            self.image = torch.Tensor(orig_image)
 
     def _set_blurred_img(self):
         img_id = self._get_img_id()
@@ -102,7 +119,25 @@ def blur_context(img, sigma, bboxes):
     return (img_blurred * (1 - objs_mask_blurred) + objs_mask_blurred * img).clip(0, 255).round().astype('uint8')
 
 
-def blur_img_objects(img, scene, assignment, sigma=3):
+def avg_context(img, bboxes):
+    img_avgd = np.ones_like(img) * AVERAGES
+    objs_mask = np.zeros_like(img, dtype=bool)
+    for bbox in bboxes:
+        objs_mask |= mask(img, bbox)
+    objs_mask = objs_mask.astype('uint8') * 255
+    objs_mask_blurred = cv2.GaussianBlur(objs_mask, (0, 0), 6) / 255
+    return (img_avgd * (1 - objs_mask_blurred) + objs_mask_blurred * img).clip(0, 255).round().astype('uint8')
+
+
+# def blur_img_objects(img, scene, assignment, sigma=3):
+#     return apply_img_objects(blur_context, img, scene, assignment, sigma=3)
+# 
+# 
+# def avg_img_objects(img, scene, assignment, sigma=3):
+    return apply_img_objects(avg_context, img, scene, assignment)
+
+
+def apply_img_objects(apply_func, img, scene, assignment, **kwargs):
     max_x = scene['width']
     max_y = scene['height']
     obj_ids = list()
@@ -112,7 +147,7 @@ def blur_img_objects(img, scene, assignment, sigma=3):
             if assignment[k]:
                 obj_ids.append(assignment[k])
     bboxes = [get_bbox(scene['objects'][obj_id], max_x, max_y) for obj_id in obj_ids]
-    a_id_img = blur_context(img, sigma, bboxes)
+    a_id_img = apply_func(img=img, bboxes=bboxes, **kwargs)
     return a_id_img
 
 
