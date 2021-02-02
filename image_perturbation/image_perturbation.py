@@ -25,7 +25,7 @@ class ImageBuffer:
         self.mode = mode
         if mode == 'blur':
             self.mode_func = blur_context
-            self.mode_args = {'sigma': self.sigma}
+            self.mode_kwargs = {'sigma': self.sigma}
         elif mode == 'avg':
             self.mode_func = avg_context
             self.mode_kwargs = dict()
