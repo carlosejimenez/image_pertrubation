@@ -59,19 +59,19 @@ class ImageBuffer:
         img_id = self._get_img_id()
         scene = self.scenes[img_id]
         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
-        if self.sigma > 0:
+        if self.mode == 'blur' and self.sigma == 0:
+            self.image = torch.Tensor(orig_image)
+        else:
             self.image = torch.Tensor(apply_img_objects(self.mode_func, orig_image, scene, self.assignment, **self.mode_kwargs))
-        else:
-            self.image = torch.Tensor(orig_image)
 
-    def _set_blurred_img(self):
-        img_id = self._get_img_id()
-        scene = self.scenes[img_id]
-        orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
-        if self.sigma > 0:
-            self.image = torch.Tensor(apply_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
-        else:
-            self.image = torch.Tensor(orig_image)
+#     def _set_blurred_img(self):
+#         img_id = self._get_img_id()
+#         scene = self.scenes[img_id]
+#         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
+#         if self.sigma > 0:
+#             self.image = torch.Tensor(apply_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
+#         else:
+#             self.image = torch.Tensor(orig_image)
 
     def __getitem__(self, key):
         a_id = self._get_a_id(key)
