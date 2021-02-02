@@ -24,10 +24,10 @@ class ImageBuffer:
         self.sigma = sigma
         self.mode = mode
         if mode == 'blur':
-            self.mode_func = blur_img_objects
+            self.mode_func = blur_context
             self.mode_args = {'sigma': self.sigma}
         elif mode == 'avg':
-            self.mode_func = avg_img_objects
+            self.mode_func = avg_context
             self.mode_kwargs = dict()
         if self.sigma == 0:
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
