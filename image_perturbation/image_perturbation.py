@@ -78,7 +78,7 @@ class ImageBuffer:
         if a_id != self.a_id:
             self.a_id = a_id
             self.assignment = self.a_id_2_assignment[a_id]
-            self._set_blurred_img()
+            self._set_img()
             image, size, scale_yx = self.image_preprocess([self.image, ])
             output_dict = self.frcnn(image, size, scales_yx=scale_yx, padding="max_detections",
                                      max_detections=self.num_detections, return_tensors="pt")
