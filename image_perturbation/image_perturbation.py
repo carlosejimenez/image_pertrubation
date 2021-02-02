@@ -69,7 +69,7 @@ class ImageBuffer:
         scene = self.scenes[img_id]
         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
         if self.sigma > 0:
-            self.image = torch.Tensor(blur_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
+            self.image = torch.Tensor(apply_img_objects(orig_image, scene, self.assignment, sigma=self.sigma))
         else:
             self.image = torch.Tensor(orig_image)
 
