@@ -134,7 +134,7 @@ def avg_context(img, bboxes):
 # 
 # 
 # def avg_img_objects(img, scene, assignment, sigma=3):
-    return apply_img_objects(avg_context, img, scene, assignment)
+#    return apply_img_objects(avg_context, img, scene, assignment)
 
 
 def apply_img_objects(apply_func, img, scene, assignment, **kwargs):
