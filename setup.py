@@ -15,7 +15,7 @@ setup(name='image_perturbation',
           'filelock',
           'Pillow',
           'PyYAML',
-          'skimage',
+          'scikit-image',
           'torch',
           'torchvision',
           'wget'
