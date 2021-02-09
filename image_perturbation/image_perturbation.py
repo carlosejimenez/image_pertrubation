@@ -52,7 +52,7 @@ class ImageProcessor:
         assignment = question['assignment']
         scene = self.scenes[img_id]
         if self.use_url:
-            arr = np.asarray(bytearray(requests.get(self.root_dir + '/%s.jpg' % img_id), stream=True).content), dtype=np.uint8)
+            arr = np.asarray(bytearray(requests.get(self.root_dir + '/%s.jpg' % img_id, stream=True).content), dtype=np.uint8)
             orig_image = cv2.imdecode(arr, -1)
         else:
             orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
