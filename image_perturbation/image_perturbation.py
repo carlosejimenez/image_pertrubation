@@ -30,7 +30,8 @@ class ImageProcessor:
         if mode == 'blur':
             self.mode = 'blur'
             self.mode_func = blur_context
-            print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
+            if mode_kwargs['sigma'] == 0:
+                print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
         elif mode == 'avg':
             self.mode = 'avg'
             self.mode_func = avg_context
