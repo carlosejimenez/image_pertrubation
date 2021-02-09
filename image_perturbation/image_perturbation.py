@@ -1,10 +1,9 @@
-import numpy as np
-import cv2
-import skimage
 import re
 import torch
-from skimage import io
 from pathlib import Path
+import cv2
+import skimage
+import numpy as np
 from .utils import Config
 from .modeling_frcnn import GeneralizedRCNN
 from .preprocess_image import Preprocess
@@ -15,31 +14,38 @@ OBJ_ID_PATTERN = r'obj[\d+]_id'
 
 
 class ImageProcessor:
-    def __init__(self, questions, scenes, mode, sigma=None, root_dir='./images/'):
+    def __init__(self, questions, scenes, mode, root_dir='./images/', **mode_kwargs):
         self.root_dir = root_dir
         self.questions = questions if type(questions) is dict else {q['question_id']: q for q in questions}
-        self.sigma = sigma
         self.mode = mode
         self.scenes = scenes
         if mode == 'blur':
             self.mode_func = blur_context
-            self.mode_kwargs = {'sigma': self.sigma}
         elif mode == 'avg':
             self.mode_func = avg_context
-            self.mode_kwargs = dict()
-        if self.sigma == 0:
+        self.mode_kwargs = mode_kwargs
+
+    def set_mode(self, mode, **mode_kwargs):
+        if mode == 'blur':
+            self.mode = 'blur'
+            self.mode_func = blur_context
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
-    
+        else:
+            assert mode == 'avg'
+            self.mode = 'avg'
+            self.mode_func = avg_context
+        self.mode_kwargs = mode_kwargs
+
     def __getitem__(self, key):
         question = self.questions[key]
         img_id = question['img_id']
         assignment = question['assignment']
         scene = self.scenes[img_id]
         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
-        if self.mode == 'blur' and self.sigma == 0:
-            self.image = np.array(orig_image)
+        if self.mode == 'blur' and self.mode_kwargs['sigma'] == 0:
+            return np.array(orig_image)
         else:
-            self.image = np.array(apply_img_objects(self.mode_func, orig_image, scene, assignment, **self.mode_kwargs))
+            return np.array(apply_img_objects(self.mode_func, orig_image, scene, assignment, **self.mode_kwargs))
 
 
 class ImageBuffer:
