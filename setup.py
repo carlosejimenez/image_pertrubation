@@ -8,4 +8,16 @@ setup(name='image_perturbation',
       author_email='cjsaltlake@gmail.com',
       license='MIT',
       packages=['image_perturbation'],
+      install_requires=[
+          'requests',
+          'tqdm',
+          'numpy',
+          'filelock',
+          'Pillow',
+          'PyYAML',
+          'skimage',
+          'torch',
+          'torchvision',
+          'wget'
+          ],
       zip_safe=False)

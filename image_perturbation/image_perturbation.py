@@ -17,6 +17,10 @@ OBJ_ID_PATTERN = r'obj[\d+]_id'
 class ImageProcessor:
     def __init__(self, questions, scenes, mode, root_dir='./images/', **mode_kwargs):
         self.root_dir = root_dir
+        self.use_url = False
+        if not Path(self.root_dir).is_dir():
+            self.use_url = True
+            self.root_dir = self.root_dir.rstrip('/')
         self.questions = questions if type(questions) is dict else {q['question_id']: q for q in questions}
         self.mode = mode
         self.scenes = scenes
@@ -46,7 +50,11 @@ class ImageProcessor:
         img_id = question['img_id']
         assignment = question['assignment']
         scene = self.scenes[img_id]
-        orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
+        if self.use_url:
+            arr = np.asarray(bytearray(requests.get(self.root_dir + '/%s.jpg' % img_id), stream=True).content), dtype=np.uint8)
+            orig_image = cv2.imdecode(arr, -1)
+        else:
+            orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
         if self.mode is None or (self.mode == 'blur' and self.mode_kwargs['sigma'] == 0):
             return np.array(orig_image)
         else:
