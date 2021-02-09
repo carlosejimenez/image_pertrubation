@@ -31,10 +31,13 @@ class ImageProcessor:
             self.mode = 'blur'
             self.mode_func = blur_context
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
-        else:
-            assert mode == 'avg'
+        elif mode == 'avg':
             self.mode = 'avg'
             self.mode_func = avg_context
+        else:
+            assert mode is None
+            self.mode = None
+            self.mode_func = None
         self.mode_kwargs = mode_kwargs
 
     def __getitem__(self, key):
@@ -43,7 +46,7 @@ class ImageProcessor:
         assignment = question['assignment']
         scene = self.scenes[img_id]
         orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
-        if self.mode == 'blur' and self.mode_kwargs['sigma'] == 0:
+        if self.mode is None or (self.mode == 'blur' and self.mode_kwargs['sigma'] == 0):
             return np.array(orig_image)
         else:
             return np.array(apply_img_objects(self.mode_func, orig_image, scene, assignment, **self.mode_kwargs))
