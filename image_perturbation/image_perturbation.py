@@ -39,7 +39,7 @@ class ImageProcessor:
         if self.mode == 'blur' and self.sigma == 0:
             self.image = np.array(orig_image)
         else:
-            self.image = np.array(apply_img_objects(self.mode_func, orig_image, scene, self.assignment, **self.mode_kwargs))
+            self.image = np.array(apply_img_objects(self.mode_func, orig_image, scene, assignment, **self.mode_kwargs))
 
 
 class ImageBuffer:
