@@ -14,6 +14,34 @@ AVERAGES = np.array([106.12723969, 115.13348752, 119.6278144 ])
 OBJ_ID_PATTERN = r'obj[\d+]_id'
 
 
+class ImageProcessor:
+    def __init__(self, questions, scenes, mode, sigma=None, root_dir='./images/'):
+        self.root_dir = root_dir
+        self.questions = questions
+        self.sigma = sigma
+        self.mode = mode
+        self.scenes = scenes
+        if mode == 'blur':
+            self.mode_func = blur_context
+            self.mode_kwargs = {'sigma': self.sigma}
+        elif mode == 'avg':
+            self.mode_func = avg_context
+            self.mode_kwargs = dict()
+        if self.sigma == 0:
+            print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
+    
+    def __getitem__(self, key):
+        question = self.questions[key]
+        img_id = question['img_id']
+        assignment = question['assignment']
+        scene = self.scenes[img_id]
+        orig_image = cv2.imread(get_img_file(img_id, self.root_dir))
+        if self.mode == 'blur' and self.sigma == 0:
+            self.image = np.array(orig_image)
+        else:
+            self.image = np.array(apply_img_objects(self.mode_func, orig_image, scene, self.assignment, **self.mode_kwargs))
+
+
 class ImageBuffer:
     def __init__(self, scenes, dataset, num_detections, mode, sigma=None, device='cuda', root_dir='./images/'):
         self.image = None
