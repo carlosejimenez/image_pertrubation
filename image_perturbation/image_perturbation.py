@@ -3,6 +3,7 @@ import torch
 from pathlib import Path
 import cv2
 import skimage
+from skimage import io
 import numpy as np
 from .utils import Config
 from .modeling_frcnn import GeneralizedRCNN
