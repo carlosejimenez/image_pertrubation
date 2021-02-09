@@ -17,7 +17,7 @@ OBJ_ID_PATTERN = r'obj[\d+]_id'
 class ImageProcessor:
     def __init__(self, questions, scenes, mode, sigma=None, root_dir='./images/'):
         self.root_dir = root_dir
-        self.questions = questions
+        self.questions = questions in type(questions) is dict else {q['question_id']: q for q in questions}
         self.sigma = sigma
         self.mode = mode
         self.scenes = scenes
