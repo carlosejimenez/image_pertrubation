@@ -3,6 +3,7 @@ import torch
 from pathlib import Path
 import cv2
 import skimage
+import requests
 from skimage import io
 import numpy as np
 from .utils import Config
