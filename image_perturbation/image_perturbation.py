@@ -29,6 +29,8 @@ class ImageProcessor:
             self.mode_func = blur_context
         elif mode == 'avg':
             self.mode_func = avg_context
+        elif mode =='crop':
+            self.mode_func = crop_context
         self.mode_kwargs = mode_kwargs
 
     def set_mode(self, mode, **mode_kwargs):
@@ -77,6 +79,9 @@ class ImageBuffer:
         elif mode == 'avg':
             self.mode_func = avg_context
             self.mode_kwargs = dict()
+        elif mode =='crop':
+            self.mode_func = crop_context
+            self.mode_kwargs = {'padding': 6}
         if self.sigma == 0:
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
         self.assignment = None
@@ -177,6 +182,19 @@ def avg_context(img, bboxes):
     return (img_avgd * (1 - objs_mask_blurred) + objs_mask_blurred * img).clip(0, 255).round().astype('uint8')
 
 
+def crop_context(img, bboxes):
+    copy = img.copy()
+    mx0, mx1 = np.inf, -np.inf
+    my0, my1 = np.inf, -np.inf
+    for bbox in bboxes:
+        x0, x1, y0, y1 = bbox
+        mx0 = min(x0, mx0)
+        mx1 = max(x1, mx1)
+        my0 = min(y0, my0)
+        my1 = max(y1, my1)
+    copy = copy[my0:my1,mx0:mx1]
+    return copy
+
 # def blur_img_objects(img, scene, assignment, sigma=3):
 #     return apply_img_objects(blur_context, img, scene, assignment, sigma=3)
 # 
@@ -189,12 +207,13 @@ def apply_img_objects(apply_func, img, scene, assignment, **kwargs):
     max_x = scene['width']
     max_y = scene['height']
     obj_ids = list()
+    padding = getattr(kwargs, 'padding', 6)
     for k in assignment:
         match = re.search(OBJ_ID_PATTERN, k)
         if match:
             if assignment[k]:
                 obj_ids.append(assignment[k])
-    bboxes = [get_bbox(scene['objects'][obj_id], max_x, max_y) for obj_id in obj_ids]
+    bboxes = [get_bbox(scene['objects'][obj_id], max_x, max_y, padding=padding) for obj_id in obj_ids]
     a_id_img = apply_func(img=img, bboxes=bboxes, **kwargs)
     return a_id_img
 
