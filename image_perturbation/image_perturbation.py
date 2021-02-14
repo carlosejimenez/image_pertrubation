@@ -42,6 +42,9 @@ class ImageProcessor:
         elif mode == 'avg':
             self.mode = 'avg'
             self.mode_func = avg_context
+        elif mode == 'crop':
+            self.mode = 'crop'
+            self.mode_func = avg_context
         else:
             assert mode is None
             self.mode = None
