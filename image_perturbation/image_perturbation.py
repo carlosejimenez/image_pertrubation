@@ -84,7 +84,7 @@ class ImageBuffer:
             self.mode_kwargs = dict()
         elif mode =='crop':
             self.mode_func = crop_context
-            self.mode_kwargs = {'padding': 6}
+            self.mode_kwargs = dict()
         if self.sigma == 0:
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
         self.assignment = None
