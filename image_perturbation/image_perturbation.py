@@ -12,7 +12,7 @@ from .preprocess_image import Preprocess
 
 
 AVERAGES = np.array([106.12723969, 115.13348752, 119.6278144 ])
-OBJ_ID_PATTERN = r'obj[\d+]_id'
+OBJ_ID_PATTERN = r'^obj[\d]+_id$'
 
 
 class ImageProcessor:
