@@ -16,21 +16,31 @@ OBJ_ID_PATTERN = r'^obj[\d]+_id$'
 
 
 class ImageProcessor:
-    def __init__(self, questions, scenes, mode, root_dir='./images/', **mode_kwargs):
+    def __init__(self, questions, scenes, mode, root_dir='./images/', masked=False, **mode_kwargs):
         self.root_dir = root_dir
         self.use_url = False
         if not Path(self.root_dir).is_dir():
             self.use_url = True
+            raise Warning('root_dir is not a directory. Setting use_url to True.')
             self.root_dir = self.root_dir.rstrip('/')
         self.questions = questions if type(questions) is dict else {q['question_id']: q for q in questions}
         self.mode = mode
         self.scenes = scenes
-        if mode == 'blur':
-            self.mode_func = blur_context
-        elif mode == 'avg':
-            self.mode_func = avg_context
-        elif mode =='crop':
-            self.mode_func = crop_context
+        self.masked = masked
+        if self.masked:
+            if mode == 'blur':
+                self.mode_func = blur_mask
+            elif mode == 'avg':
+                self.mode_func = avg_mask
+            elif mode =='crop':
+                raise NotImplementedError('Cannot set mode to crop when masked:=True.')
+        else:
+            if mode == 'blur':
+                self.mode_func = blur_context
+            elif mode == 'avg':
+                self.mode_func = avg_context
+            elif mode =='crop':
+                self.mode_func = crop_context
         self.mode_kwargs = mode_kwargs
 
     def set_mode(self, mode, **mode_kwargs):
@@ -68,7 +78,7 @@ class ImageProcessor:
 
 
 class ImageBuffer:
-    def __init__(self, scenes, dataset, num_detections, mode, sigma=None, device='cuda', root_dir='./images/'):
+    def __init__(self, scenes, dataset, num_detections, mode, sigma=None, device='cuda', root_dir='./images/', masked=False):
         self.image = None
         self.root_dir = root_dir
         self.a_id = None
@@ -76,15 +86,26 @@ class ImageBuffer:
         self.boxes = None
         self.sigma = sigma
         self.mode = mode
-        if mode == 'blur':
-            self.mode_func = blur_context
-            self.mode_kwargs = {'sigma': self.sigma}
-        elif mode == 'avg':
-            self.mode_func = avg_context
-            self.mode_kwargs = dict()
-        elif mode =='crop':
-            self.mode_func = crop_context
-            self.mode_kwargs = dict()
+        self.masked = masked
+        if self.masked:
+            if mode == 'blur':
+                self.mode_func = blur_mask
+                self.mode_kwargs = {'sigma': self.sigma}
+            elif mode == 'avg':
+                self.mode_func = avg_mask
+                self.mode_kwargs = dict()
+            elif mode =='crop':
+                raise NotImplementedError('Cannot set mode to crop when masked:=True.')
+        else:
+            if mode == 'blur':
+                self.mode_func = blur_context
+                self.mode_kwargs = {'sigma': self.sigma}
+            elif mode == 'avg':
+                self.mode_func = avg_context
+                self.mode_kwargs = dict()
+            elif mode =='crop':
+                self.mode_func = crop_context
+                self.mode_kwargs = dict()
         if self.sigma == 0:
             print('Warning: Parameter sigma set to 0. Output images will not be blurred.')
         self.assignment = None
@@ -175,6 +196,17 @@ def blur_context(img, sigma, bboxes):
     return (img_blurred * (1 - objs_mask_blurred) + objs_mask_blurred * img).clip(0, 255).round().astype('uint8')
 
 
+def blur_mask(img, sigma, bboxes):
+    ksize = 0
+    img_blurred = cv2.GaussianBlur(img, (ksize, ksize), sigma)
+    objs_mask = np.zeros_like(img, dtype=bool)
+    for bbox in bboxes:
+        objs_mask |= mask(img, bbox)
+    objs_mask = objs_mask.astype('uint8') * 255
+    objs_mask_blurred = cv2.GaussianBlur(objs_mask, (ksize, ksize), sigma) / 255
+    return (objs_mask_blurred * img_blurred + (1 - objs_mask_blurred) * img).clip(0, 255).round().astype('uint8')
+
+
 def avg_context(img, bboxes):
     img_avgd = np.ones_like(img) * AVERAGES
     objs_mask = np.zeros_like(img, dtype=bool)
@@ -184,6 +216,16 @@ def avg_context(img, bboxes):
     objs_mask_blurred = cv2.GaussianBlur(objs_mask, (0, 0), 6) / 255
     return (img_avgd * (1 - objs_mask_blurred) + objs_mask_blurred * img).clip(0, 255).round().astype('uint8')
 
+
+def avg_mask(img, bboxes):
+    img_avgd = np.ones_like(img) * AVERAGES
+    objs_mask = np.zeros_like(img, dtype=bool)
+    for bbox in bboxes:
+        objs_mask |= mask(img, bbox)
+    objs_mask = objs_mask.astype('uint8') * 255
+    objs_mask_blurred = cv2.GaussianBlur(objs_mask, (0, 0), 6) / 255
+    return (objs_mask_blurred * img_avgd + (1 - objs_mask_blurred) * img).clip(0, 255).round().astype('uint8')
+    
 
 def crop_context(img, bboxes):
     copy = img.copy()
