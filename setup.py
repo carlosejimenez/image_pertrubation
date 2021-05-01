@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='image_perturbation',
-      version='0.2.2',
+      version='0.3.0',
       description='Image Buffer with Faster R-CNN module.',
       url='http://github.com/carlosejimenez/imageperturbation',
       author='Carlos E. Jiménez',

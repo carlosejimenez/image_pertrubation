@@ -15,6 +15,26 @@ AVERAGES = np.array([106.12723969, 115.13348752, 119.6278144 ])
 OBJ_ID_PATTERN = r'^obj[\d]+_id$'
 
 
+class ImageModel:
+    def __init__(self, questions, scenes, mode, device, root_dir='./images/', masked=False, **mode_kwargs):
+        self.processor = ImageProcessor(questions, scenes, mode, root_dir=root_dir, masked=masked, **mode_kwargs)
+        self.device = device
+        frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
+        frcnn_cfg.model.device = self.device
+        frcnn_cfg.max_detections = 36
+        self.frcnn = GeneralizedRCNN.from_pretrained("unc-nlp/frcnn-vg-finetuned", config=frcnn_cfg)
+        self.image_preprocess = Preprocess(frcnn_cfg)
+
+    def __getitem__(self, key):
+        image = torch.from_numpy(self.processor[key])
+        image, size, scale_yx = self.image_preprocess([image, ])
+        output_dict = self.frcnn(image, size, scales_yx=scale_yx, padding="max_detections",
+                                 max_detections=36, return_tensors="pt")
+        self.feats = output_dict.get("roi_features")
+        self.boxes = output_dict.get("normalized_boxes")
+        return self.feats, self.boxes
+
+
 class ImageProcessor:
     def __init__(self, questions, scenes, mode, root_dir='./images/', masked=False, **mode_kwargs):
         self.root_dir = root_dir
