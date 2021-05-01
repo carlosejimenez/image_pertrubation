@@ -26,7 +26,8 @@ class ImageModel:
         self.image_preprocess = Preprocess(frcnn_cfg)
 
     def __getitem__(self, key):
-        image = torch.from_numpy(self.processor[key])
+        image = torch.Tensor(self.processor[key])
+        assert isinstance(image, torch.Tensor)
         image, size, scale_yx = self.image_preprocess([image, ])
         output_dict = self.frcnn(image, size, scales_yx=scale_yx, padding="max_detections",
                                  max_detections=36, return_tensors="pt")
